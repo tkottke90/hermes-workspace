@@ -51,13 +51,16 @@ def main():
         if slave_fd > 2:
             os.close(slave_fd)
 
+        _CWD_ERRORS = (FileNotFoundError, PermissionError, NotADirectoryError)
         try:
             os.chdir(cwd)
-        except (FileNotFoundError, PermissionError, NotADirectoryError):
+        except _CWD_ERRORS:
             fallback = os.environ.get('HOME', '/tmp')
+            sys.stderr.write(f'pty-helper: cannot chdir to {cwd!r}, falling back to {fallback!r}\n')
+            sys.stderr.flush()
             try:
                 os.chdir(fallback)
-            except (FileNotFoundError, PermissionError, NotADirectoryError):
+            except _CWD_ERRORS:
                 os.chdir('/tmp')
 
         os.environ['TERM'] = 'xterm-256color'
