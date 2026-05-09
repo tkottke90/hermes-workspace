@@ -33,6 +33,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && groupadd -r workspace && useradd -r -g workspace -u 10010 workspace
 
 WORKDIR /app
+# Allow the non-root workspace user to create files directly in /app
+# (e.g. swarm.yaml written by writeSwarmRoster). WORKDIR creates /app owned
+# by root; without this chown the workspace process gets EACCES on any new
+# file created at the /app level.
+RUN chown workspace:workspace /app
 
 # Copy build artefacts + runtime deps.
 # server-entry.js is the Node HTTP server that wraps the TanStack Start fetch
